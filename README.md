@@ -25,3 +25,10 @@ From the root directory of the project, run:
 ```bash
 cmake -B build
 cmake --build build
+# LLM Telemetry Dashboard
+
+A real-time, terminal-based telemetry interface for tracking LLM inference metrics.
+
+## 📥 Model Download
+To run this project locally, download the model weights file and place it inside your local `/models/` directory:
+* 📦 **[Download tiny-model.gguf (468 MB)](PASTE_YOUR_COPIED_LINK_HERE)**
