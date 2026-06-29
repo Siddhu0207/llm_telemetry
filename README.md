@@ -31,4 +31,4 @@ A real-time, terminal-based telemetry interface for tracking LLM inference metri
 
 ## 📥 Model Download
 To run this project locally, download the model weights file and place it inside your local `/models/` directory:
-* 📦 **[Download tiny-model.gguf (468 MB)](PASTE_YOUR_COPIED_LINK_HERE)**
+* 📦 **[Download tiny-model.gguf (468 MB)](sha256:74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db)**
