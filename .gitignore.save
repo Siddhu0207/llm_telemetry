@@ -1,0 +1,22 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.o
+*.obj
+
+# CMake build outputs and caches
+/build/
+/.cmake/
+CMakeCache.txt
+CMakeFiles/
+CMakePresets.json
+Makefile
+cmake_install.cmake
+
+# OS generated files
+.DS_Store
+
+# Executables
+telemetry_run
+
