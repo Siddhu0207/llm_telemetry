@@ -1,33 +1,14 @@
-cmake_minimum_required(VERSION 3.24)
-project(LLM_Telemetry C CXX)
+cmake_minimum_required(VERSION 3.14)
+project(llm_telemetry LANGUAGES CXX)
 
+# Force the compiler to use modern C++17 on ALL platforms
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# 1. Bring in the Llama engine 
-set(LLAMA_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(LLAMA_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-add_subdirectory(third_party/llama.cpp)
-
-# 2. Bring in the UI Framework
-set(FTXUI_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(FTXUI_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-add_subdirectory(third_party/ftxui)
-
-# 3. Define our main telemetry executable
-add_executable(telemetry_run src/main.cpp)
-
-# 4. CRITICAL FIX: Tell the compiler exactly where the header files are located
-target_include_directories(telemetry_run PRIVATE 
-    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/llama.cpp/include
-    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/llama.cpp/ggml/include
+# Define your source files generically
+add_executable(telemetry_run 
+    src/main.cpp 
 )
 
-# 5. Link everything together safely
-target_link_libraries(telemetry_run 
-    PRIVATE 
-    llama           
-    ftxui::screen   
-    ftxui::dom      
-    ftxui::component 
-)
+# Cross-platform dependency linking (FTXUI and llama.cpp)
+target_link_libraries(telemetry_run PRIVATE ftxui::screen ftxui::dom ftxui::component)
