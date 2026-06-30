@@ -6,10 +6,9 @@
 #include <sstream>
 #include <algorithm>
 
-// Llama.cpp backend headers
+ 
 #include "llama.h"
-
-// FTXUI Frontend GUI headers
+ 
 #include <ftxui/dom/elements.hpp>
 #include <ftxui/screen/screen.hpp>
 #include <ftxui/component/component.hpp>
@@ -17,7 +16,7 @@
 
 using namespace ftxui;
 
-// Helper to get formatted millisecond timestamps matching screenshot format
+ 
 std::string GetTimestampString() {
     auto now = std::chrono::system_clock::now();
     auto time_t_now = std::chrono::system_clock::to_time_t(now);
@@ -25,16 +24,13 @@ std::string GetTimestampString() {
     auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count() % 1000;
     
     std::tm tm_now;
-    localtime_r(&time_t_now, &tm_now); // Thread-safe on macOS
+    localtime_r(&time_t_now, &tm_now);  
     
     std::ostringstream oss;
     oss << std::put_time(&tm_now, "%H:%M:%S") << "." << std::setfill('0') << std::setw(3) << millis;
     return oss.str();
 }
 
-// ---------------------------------------------------------
-// 1. ADVANCED STATE STORAGE
-// ---------------------------------------------------------
 struct TelemetryPacket {
     int id;
     std::string timestamp;
@@ -61,13 +57,11 @@ struct TelemetryState {
     std::vector<TelemetryPacket> packets;
     std::vector<AnomalyLog> anomalies;
     
-    // Tracks the active/focused metrics info
+     
     TelemetryPacket active_metrics;
 };
 
-// ---------------------------------------------------------
-// 2. THE NON-INVASIVE MEMORY WIRETAP (The Hook)
-// ---------------------------------------------------------
+ 
 static bool telemetry_hook(struct ggml_tensor * t, bool ask, void * user_data) {
     if (ask) return true; 
 
@@ -84,22 +78,20 @@ static bool telemetry_hook(struct ggml_tensor * t, bool ask, void * user_data) {
     state->packet_counter++;
     std::string tensor_name = t->name ? t->name : "unnamed";
     
-    // Categorize layer type accurately from tensor patterns
+     
     std::string type_lbl = "LayerNorm";
     if (tensor_name.find("attn") != std::string::npos || tensor_name.find("q_") != std::string::npos) type_lbl = "Attn (Self)";
     else if (tensor_name.find("mlp") != std::string::npos || tensor_name.find("ffn") != std::string::npos) type_lbl = "MLP (SwiGLU)";
 
-    // Capture tensor precision data types
+   
     std::string dtype_str = "float16";
     if (t->type == GGML_TYPE_F32) dtype_str = "float32";
     else if (t->type == GGML_TYPE_Q4_0) dtype_str = "q4_0";
-
-    // Reconstruct structural shape matrix string [Batch, Heads, Features]
+ 
     std::string shape_format = "[" + std::to_string(t->ne[2] > 0 ? t->ne[2] : 1) + ", " 
                                    + std::to_string(t->ne[1] > 0 ? t->ne[1] : 1) + ", " 
                                    + std::to_string(t->ne[0]) + "]";
-
-    // Simulate standard sparse mapping distribution rates 
+  
     float computed_sparsity = 40.0f + (float)(rand() % 200) / 10.0f; 
 
     TelemetryPacket packet = {
@@ -107,7 +99,7 @@ static bool telemetry_hook(struct ggml_tensor * t, bool ask, void * user_data) {
         GetTimestampString(),
         tensor_name,
         type_lbl,
-        (type_lbl == "LayerNorm" ? "CPU (Fallback)" : "METAL [GPU 0]"), // Handles Apple Silicon execution pathways
+        (type_lbl == "LayerNorm" ? "CPU (Fallback)" : "METAL [GPU 0]"),  
         shape_format,
         dtype_str,
         computed_sparsity,
@@ -115,9 +107,9 @@ static bool telemetry_hook(struct ggml_tensor * t, bool ask, void * user_data) {
     };
 
     state->packets.push_back(packet);
-    state->active_metrics = packet; // Update live dashboard metrics scope
+    state->active_metrics = packet; 
 
-    // Real-time numerical integrity processing rules
+     
     if (latency_ms > 1.1) {
         state->anomalies.push_back({packet.timestamp, "Outlier Feature Layer " + std::to_string(rand()%32) + ": Max > 6.0", false});
     }
@@ -128,9 +120,7 @@ static bool telemetry_hook(struct ggml_tensor * t, bool ask, void * user_data) {
     return true; 
 }
 
-// ---------------------------------------------------------
-// 3. UI GENERATION PIPELINES (FTXUI)
-// ---------------------------------------------------------
+
 Element RenderTopology() {
     return window(text(" 1. MODEL TOPOLOGY (Focus Active) ") | bold, vbox({
         text("▼ llama-3-8b") | color(Color::Cyan),
@@ -172,24 +162,24 @@ Element RenderAttentionMatrix() {
     std::vector<std::string> tokens = {"[I]", "[want]", "[it]", "[to]", "[be]", "[keyboard]", "[driven]"};
     Elements rows;
     
-    // 1. Header Alignment Row
+    
     Elements header_row = { text("") | size(WIDTH, EQUAL, 12) };
     for (const auto& t : tokens) {
-        // Added 'hcenter' to perfectly center the column headers
+       
         header_row.push_back(text(t) | hcenter | size(WIDTH, EQUAL, 12));
     }
     header_row.push_back(filler());
     header_row.push_back(text("Viewport Window: [0-7] x [0-7]") | color(Color::GrayDark));
     rows.push_back(hbox(std::move(header_row)));
 
-    // 2. Data Rows Grid Mapping
+    
     for (int i = 0; i < tokens.size(); ++i) {
         Elements current_row;
-        // Keep left margin labels left-aligned for a clean edge
+        
         current_row.push_back(text(tokens[i]) | size(WIDTH, EQUAL, 12));
         
         for (int j = 0; j < tokens.size(); ++j) {
-            // Added 'hcenter' to force every block into the exact middle of the column
+             
             if (i == j) {
                 current_row.push_back(text("██") | hcenter | size(WIDTH, EQUAL, 12) | color(Color::Red));
             } else if (std::abs(i - j) == 1) {
@@ -199,7 +189,7 @@ Element RenderAttentionMatrix() {
             }
         }
         
-        // Fixed Sidebar Logic
+         
         if (i == 1) { 
             current_row.push_back(filler()); 
             current_row.push_back(text("────────────────────────────────────────") | color(Color::GrayDark)); 
@@ -252,9 +242,7 @@ Element RenderAnomalyLedger(const std::vector<AnomalyLog>& alerts) {
     return window(text(" 5. NUMERICAL ANOMALY LEDGER "), vbox(std::move(logs))) | flex;
 }
 
-// ---------------------------------------------------------
-// 4. MAIN TELEMETRY ENTRYPOINT
-// ---------------------------------------------------------
+
 int main() {
     std::string model_path = "models/tiny-model.gguf";
     std::cout << "🎛️ Initializing Wiretaps & Triggering Forward Pass Graph Execution...\n";
@@ -275,17 +263,17 @@ int main() {
 
     llama_context* ctx = llama_init_from_model(model, ctx_params);
 
-    // Feed explicit evaluation sequence to spark matrix pipelines
+     
     llama_token dummy_tokens[3] = {1, 2, 3}; 
     llama_batch batch = llama_batch_get_one(dummy_tokens, 3);
     llama_decode(ctx, batch);
 
-    // Free resources safely
+    
     llama_free(ctx);
     llama_model_free(model);
     llama_backend_free();
 
-    // Launch FTXUI Renderer Loop
+    
     auto screen = ScreenInteractive::Fullscreen();
     auto renderer = Renderer([&] {
         auto row_1 = hbox({ RenderTopology(), RenderPacketStream(tracker.packets) });
