@@ -29,6 +29,16 @@ cmake --build build
 
 A real-time, terminal-based telemetry interface for tracking LLM inference metrics.
 
-## 📥 Model Download
+## Model Download
 To run this project locally, download the model weights file and place it inside your local `/models/` directory:
 * 📦 **[Download tiny-model.gguf (468 MB)](sha256:74a4da8c9fdbcd15bd1f6d01d621410d31c6fc00986f5eb687824e7b93d7a9db)**
+
+ 
+
+This project requires a compiler that supports **C++17 or higher** (e.g., GCC 11+, Clang 13+, or MSVC 2022+).
+
+Open your terminal and run:
+```bash
+cmake -B build
+cmake --build build
+./build/telemetry_run
