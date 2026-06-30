@@ -38,7 +38,18 @@ To run this project locally, download the model weights file and place it inside
 This project requires a compiler that supports **C++17 or higher** (e.g., GCC 11+, Clang 13+, or MSVC 2022+).
 
 Open your terminal and run:
+ 
+ > **Important:** Expand your terminal window to be reasonably wide and tall *before* launching the executable so the dashboard renders properly.
+
+#### For macOS &  Linux
+Open your terminal and run:
 ```bash
+ 
+rm -rf build
+
+ 
 cmake -B build
 cmake --build build
+
+ 
 ./build/telemetry_run
